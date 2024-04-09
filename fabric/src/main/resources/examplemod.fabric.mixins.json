@@ -7,7 +7,7 @@
     "mixins": [
     ],
     "client": [
-        "MixinTitleScreen"
+      "tfar.enhancedgoldenenchantments.mixin.MixinTitleScreen"
     ],
     "server": [
     ],
