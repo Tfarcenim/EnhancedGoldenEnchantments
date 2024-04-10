@@ -1,10 +1,17 @@
 package tfar.enhancedgoldenenchantments;
 
-import tfar.enhancedgoldenenchantments.platform.Services;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Items;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
@@ -15,23 +22,21 @@ public class EnhancedGoldenEnchantments {
     public static final String MOD_ID = "enhancedgoldenenchantments";
     public static final String MOD_NAME = "EnhancedGoldenEnchantments";
     public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
+    public static final TagKey<Item> GOLDEN_ITEMS = TagKey.create(Registries.ITEM,new ResourceLocation(MOD_ID,"golden_items"));
+    public static final TagKey<Enchantment> BLOCKED = TagKey.create(Registries.ENCHANTMENT,new ResourceLocation(MOD_ID,"blocked"));
 
-    // The loader specific projects are able to import and use any code from the common project. This allows you to
-    // write the majority of your code here and load it from your loader specific projects. This example has some
-    // code that gets invoked by the entry point of the loader specific projects.
     public static void init() {
+        ModGamerules.poke();
+    }
 
-        LOG.info("Hello from Common init on {}! we are currently in a {} environment!", Services.PLATFORM.getPlatformName(), Services.PLATFORM.getEnvironmentName());
-        LOG.info("The ID for diamonds is {}", BuiltInRegistries.ITEM.getKey(Items.DIAMOND));
+    public static void enhanceIfGold(Level level, ItemStack pStack, int pEnchantSlot, int pLevel, List<EnchantmentInstance> returnValue) {
+        if (pStack.is(GOLDEN_ITEMS)) {
+            for (int i = 0; i < returnValue.size(); i++) {
+                EnchantmentInstance enchantmentInstance = returnValue.get(i);
+                if (enchantmentInstance.enchantment.getMaxLevel() == 1) continue;
 
-        // It is common for all supported loaders to provide a similar feature that can not be used directly in the
-        // common code. A popular way to get around this is using Java's built-in service loader feature to create
-        // your own abstraction layer. You can learn more about this in our provided services class. In this example
-        // we have an interface in the common code and use a loader specific implementation to delegate our call to
-        // the platform specific approach.
-        if (Services.PLATFORM.isModLoaded("examplemod")) {
-
-            LOG.info("Hello to examplemod");
+                returnValue.set(i,new EnchantmentInstance(enchantmentInstance.enchantment,enchantmentInstance.level * level.getGameRules().getInt(ModGamerules.goldenMultiplier)));
+            }
         }
     }
 }
